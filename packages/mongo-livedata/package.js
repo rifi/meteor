@@ -12,10 +12,11 @@ Package.describe({
   internal: true
 });
 
+Npm.depends({mongodb: "1.1.11"});
+
 Package.on_use(function (api) {
   api.use(['random', 'ejson', 'json', 'underscore', 'minimongo', 'logging', 'livedata'],
           ['client', 'server']);
-  api.useNpm({mongodb: "1.1.11"});
 
   api.add_files('mongo_driver.js', 'server');
   api.add_files('local_collection_driver.js', ['client', 'server']);
