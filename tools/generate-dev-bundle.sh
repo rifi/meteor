@@ -15,6 +15,9 @@ if [ "$UNAME" == "Linux" ] ; then
     fi
     MONGO_OS="linux"
 
+    stripBinary() {
+        strip --remove-section=.comment --remove-section=.note $1
+    }
 elif [ "$UNAME" == "Darwin" ] ; then
     SYSCTL_64BIT=$(sysctl -n hw.cpu64bit_capable 2>/dev/null || echo 0)
     if [ "$ARCH" == "i386" -a "1" != "$SYSCTL_64BIT" ] ; then
@@ -31,6 +34,10 @@ elif [ "$UNAME" == "Darwin" ] ; then
     fi
 
     MONGO_OS="osx"
+
+    stripBinary() {
+        strip -u -r $1
+    }
 else
     echo "This OS not yet supported"
     exit 1
@@ -146,6 +153,10 @@ cd ../..
 # for now we have to manually remove it.
 # https://github.com/mongodb/node-mongodb-native/issues/736
 rm -rf lib/node_modules/mongodb/.coverage_data
+
+stripBinary bin/node
+stripBinary mongodb/bin/mongo
+stripBinary mongodb/bin/mongod
 
 
 echo BUNDLING
