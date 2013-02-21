@@ -1143,9 +1143,17 @@ Spark.createLandmark = function (options, htmlFunc) {
   });
 };
 
+// Argument: (controller, [controller args,] htmlFunc)
 Spark.attachController = function (controller, htmlFunc) {
   if (! (controller.prototype instanceof Spark.Landmark))
     throw new Error("Controller must be a subclass of Spark.Landmark");
+
+  var args = _.toArray(arguments);
+  args.shift();
+  var htmlFunc = args.pop();
+  if (typeof htmlFunc !== "function")
+    throw new Meteor.Error("Last argument to attachController must be a " +
+                           "function");
 
   var parentLandmark = Spark._currentLandmark.get() || null;
   var renderer = Spark._currentRenderer.get();
@@ -1170,6 +1178,7 @@ Spark.attachController = function (controller, htmlFunc) {
       throw new Error("Can't create second landmark in same branch");
     notes.originalRange.superceded = true; // prevent destroyed(), second match
     landmark = notes.originalRange.landmark; // the old Landmark
+    landmark.recycle.apply(landmark, args);
   } else {
     // Create Landmark outside the current Spark.isolate's deps context.
     // XXX Can't call run() on null, so this is a hack.  Running inside
@@ -1179,7 +1188,7 @@ Spark.attachController = function (controller, htmlFunc) {
     try {
       landmark = new controller;
       landmark._setInitialParent(parentLandmark);
-      landmark.init();
+      landmark.init.apply(landmark, args);
     } finally {
       Meteor.deps.Context.current = oldCx;
     }
